@@ -128,7 +128,7 @@ class KeycloakDiffgramClient(OAuth2ClientBase):
     def __create_default_diffgram_client(self) -> str:
         logger.info(f'Creating client {settings.OAUTH2_PROVIDER_CLIENT_ID}')
         client_id = self.keycloak_admin_master.create_client(
-            payload = {'name': settings.OAUTH2_PROVIDER_CLIENT_ID,
+            payload = {'clientId': settings.OAUTH2_PROVIDER_CLIENT_ID,
                        'id': settings.OAUTH2_PROVIDER_CLIENT_ID},
             skip_exists = True)
         self.keycloak_admin_master.update_client(client_id,
