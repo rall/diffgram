@@ -84,21 +84,26 @@ class KeycloakDiffgramClient(OAuth2ClientBase):
         logger.info(f'Added project roles: {project_roles}')
 
     def __setup_scopes_and_mappers(self):
-        scopes = self.keycloak_admin_master.get_client_scopes()
-        for s in scopes:
-            if s.get('name') and s.get('name') in ['roles']:
-                # Get the current scope to merge with our updates
-                scope_id = s.get('id')
-                current_scope = self.keycloak_admin_master.get_client_scope(scope_id)
+        try:
+            scopes = self.keycloak_admin_master.get_client_scopes()
+            for s in scopes:
+                if s.get('name') and s.get('name') in ['roles']:
+                    # Get the current scope to merge with our updates
+                    scope_id = s.get('id')
+                    current_scope = self.keycloak_admin_master.get_client_scope(scope_id)
 
-                # Merge our attribute updates with existing scope data
-                if 'attributes' not in current_scope:
-                    current_scope['attributes'] = {}
-                current_scope['attributes']['display.on.consent.screen'] = 'true'
-                current_scope['attributes']['include.in.token.scope'] = 'true'
+                    # Merge our attribute updates with existing scope data
+                    if 'attributes' not in current_scope:
+                        current_scope['attributes'] = {}
+                    current_scope['attributes']['display.on.consent.screen'] = 'true'
+                    current_scope['attributes']['include.in.token.scope'] = 'true'
 
-                self.keycloak_admin_master.update_client_scope(client_scope_id = scope_id,
-                                                               payload = current_scope)
+                    self.keycloak_admin_master.update_client_scope(client_scope_id = scope_id,
+                                                                   payload = current_scope)
+            logger.info('Successfully configured client scopes and mappers')
+        except Exception as e:
+            # Scope configuration is optional - log warning but don't fail setup
+            logger.warning(f'Could not configure client scopes: {e}. OAuth will still work.')
         # self.keycloak_admin_master.get_client_scope()
 
         return self.client_secret
