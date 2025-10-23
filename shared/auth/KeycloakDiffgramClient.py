@@ -73,6 +73,10 @@ class KeycloakDiffgramClient(OAuth2ClientBase):
         self.__get_client_secret()
 
         self.__setup_scopes_and_mappers()
+
+        # Setup Google OAuth Identity Provider if configured
+        self.__setup_google_identity_provider()
+
         # Create default roles
         global_roles = self.__create_default_global_roles(client_id = client_id)
         logger.info(f'Added global roles: {global_roles}')
@@ -107,6 +111,79 @@ class KeycloakDiffgramClient(OAuth2ClientBase):
         # self.keycloak_admin_master.get_client_scope()
 
         return self.client_secret
+
+    def __setup_google_identity_provider(self):
+        """
+        Setup Google OAuth Identity Provider if configured.
+        Allows users to log in with their Google accounts.
+        """
+        # Check if Google OAuth credentials are configured
+        google_client_id = getattr(settings, 'GOOGLE_OAUTH_CLIENT_ID', None)
+        google_client_secret = getattr(settings, 'GOOGLE_OAUTH_CLIENT_SECRET', None)
+
+        if not google_client_id or not google_client_secret:
+            logger.info('Google OAuth credentials not configured. Skipping Google IDP setup.')
+            return
+
+        try:
+            logger.info('Setting up Google Identity Provider...')
+
+            # Check if Google IDP already exists
+            idps = self.keycloak_admin_master.get_idps()
+            google_exists = any(idp.get('alias') == 'google' for idp in idps)
+
+            if google_exists:
+                logger.info('Google Identity Provider already exists. Updating configuration...')
+                self.keycloak_admin_master.update_idp(
+                    idp_alias='google',
+                    payload={
+                        'alias': 'google',
+                        'providerId': 'google',
+                        'enabled': True,
+                        'updateProfileFirstLoginMode': 'on',
+                        'trustEmail': True,
+                        'storeToken': False,
+                        'addReadTokenRoleOnCreate': False,
+                        'authenticateByDefault': False,
+                        'linkOnly': False,
+                        'firstBrokerLoginFlowAlias': 'first broker login',
+                        'config': {
+                            'clientId': google_client_id,
+                            'clientSecret': google_client_secret,
+                            'hostedDomain': '',
+                            'useJwksUrl': 'true'
+                        }
+                    }
+                )
+                logger.info('Google Identity Provider updated successfully')
+            else:
+                logger.info('Creating new Google Identity Provider...')
+                self.keycloak_admin_master.create_idp(
+                    payload={
+                        'alias': 'google',
+                        'providerId': 'google',
+                        'enabled': True,
+                        'updateProfileFirstLoginMode': 'on',
+                        'trustEmail': True,
+                        'storeToken': False,
+                        'addReadTokenRoleOnCreate': False,
+                        'authenticateByDefault': False,
+                        'linkOnly': False,
+                        'firstBrokerLoginFlowAlias': 'first broker login',
+                        'config': {
+                            'clientId': google_client_id,
+                            'clientSecret': google_client_secret,
+                            'hostedDomain': '',
+                            'useJwksUrl': 'true'
+                        }
+                    }
+                )
+                logger.info('Google Identity Provider created successfully')
+
+        except Exception as e:
+            # Google IDP setup is optional - log warning but don't fail startup
+            logger.warning(f'Could not setup Google Identity Provider: {e}. Users can still use email/password login.')
+            logger.debug(traceback.format_exc())
 
     def __get_client_secret(self):
         # First get the client UUID from the clientId string
