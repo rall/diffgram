@@ -97,7 +97,10 @@ class KeycloakDiffgramClient(OAuth2ClientBase):
         return self.client_secret
 
     def __get_client_secret(self):
-        client = self.keycloak_admin_master.get_client(settings.OAUTH2_PROVIDER_CLIENT_ID)
+        # First get the client UUID from the clientId string
+        # python-keycloak's get_client() expects UUID, not clientId string
+        client_uuid = self.keycloak_admin_master.get_client_id(settings.OAUTH2_PROVIDER_CLIENT_ID)
+        client = self.keycloak_admin_master.get_client(client_uuid)
         secret = self.keycloak_admin_master.get_client_secrets(client_id = client.get('id'))
         self.client_secret = secret.get('value')
         return self.client_secret
