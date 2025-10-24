@@ -47,7 +47,9 @@ class KeycloakDiffgramClient(OAuth2ClientBase):
 
     def __init__(self):
         self.setup_keycloak_diffgram_install()
-        self.keycloak = KeycloakOpenID(server_url = settings.OAUTH2_PROVIDER_HOST,
+        # Use public URL for KeycloakOpenID (generates login URLs for browsers)
+        # Use internal URL for KeycloakAdmin (server-to-server communication)
+        self.keycloak = KeycloakOpenID(server_url = settings.OAUTH2_PROVIDER_PUBLIC_URL,
                                        client_id = settings.OAUTH2_PROVIDER_CLIENT_ID,
                                        realm_name = settings.KEYCLOAK_REALM,
                                        client_secret_key = self.client_secret)

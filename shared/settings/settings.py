@@ -192,9 +192,14 @@ SIGNED_URL_CACHE_NEW_OFFSET_SECONDS_VALID = int(os.getenv('SIGNED_URL_CACHE_NEW_
 USE_OAUTH2 = env_adapter.bool(os.getenv('USE_OAUTH2', False))
 OAUTH2_PROVIDER_NAME = os.getenv('OAUTH2_PROVIDER_NAME', 'keycloak')
 OAUTH2_PROVIDER_HOST = os.getenv('OAUTH2_PROVIDER_HOST', 'http://localhost:8099/auth/')
+OAUTH2_PROVIDER_PUBLIC_URL = os.getenv('OAUTH2_PROVIDER_PUBLIC_URL', os.getenv('OAUTH2_PROVIDER_HOST', 'http://localhost:8099/auth/'))
 OAUTH2_PROVIDER_CLIENT_ID = os.getenv('OAUTH2_PROVIDER_CLIENT_ID', 'diffgram')
 OAUTH2_PROVIDER_CLIENT_SECRET = os.getenv('OAUTH2_PROVIDER_CLIENT_SECRET')
 OAUTH2_PROVIDER_PUBLIC_KEY = os.getenv('OAUTH2_PROVIDER_PUBLIC_KEY', 'diffgram_public_key')
+
+# Google OAuth Settings (for Google Identity Provider in Keycloak)
+GOOGLE_OAUTH_CLIENT_ID = os.getenv('GOOGLE_OAUTH_CLIENT_ID')
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET')
 
 if URL_BASE.endswith('/'):
     OAUTH2_DEFAULT_REDIRECT_URL = f'{URL_BASE}user/oauth2-login/'
